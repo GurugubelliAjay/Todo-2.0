@@ -13,7 +13,7 @@ const auth=(req,res,next)=>{
         // Verify the token using the secret
         const decoded=jwt.verify(token,process.env.JWT_SECRET);
         // Attach user id from token payload to the req obj
-        req.user=decoded;
+        req.user=decoded.id;
         next();
     } catch (error) {
         res.status(401).json({message:'Invalid token'});

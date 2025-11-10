@@ -2,7 +2,7 @@ const Todo=require('../models/Todo.js');
 // Get /api/todos
 const getTodos=async(req,res)=>{
     try {
-        const todos=await Todo.find().sort({createdAt:-1});
+        const todos=await Todo.find({user:req.user}).sort({createdAt:-1});
         res.status(200).json(todos);
     } catch (error) {
         res.status(500).json({message:'Server Error',error:error.message});
@@ -11,7 +11,7 @@ const getTodos=async(req,res)=>{
 // Post /api/todos
 const createTodo=async(req,res)=>{
     try {
-        const todo=new Todo({text:req.body.text});
+        const todo=new Todo({text:req.body.text,user:req.user});
         await todo.save();
         res.status(201).json(todo);
     } catch (error) {
@@ -21,7 +21,8 @@ const createTodo=async(req,res)=>{
 // Put /api/todos/:id
 const updateTodo=async(req,res)=>{
     try {
-        const todo=await Todo.findByIdAndUpdate(req.params.id,req.body,{new:true});
+        const todo=await Todo.findByIdAndUpdate({_id:req.params.id,user:req.user},req.body,{new:true});
+        if (!todo) return res.status(404).json({ message: 'Todo not found' });
         res.status(200).json(todo);
     } catch (error) {
         res.status(400).json({message:'Bad request',error:error.message});
@@ -30,7 +31,8 @@ const updateTodo=async(req,res)=>{
 // Delete /api/todos/:id
 const deleteTodo=async(req,res)=>{
     try {
-        await Todo.findByIdAndDelete(req.params.id);
+        const todo=await Todo.findByIdAndDelete({_id:req.params.id,user:req.user});
+        if (!todo) return res.status(404).json({ message: 'Todo not found' });
         res.status(200).json({message:'Todo deleted'});
     } catch (error) {
         res.status(400).json({message:'Bad request',error:error.message});
